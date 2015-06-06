@@ -94,7 +94,7 @@ function! go#fmt#Format(withGoimport)
     let command = fmt_command . ' ' . g:go_fmt_options
 
     " execute our command...
-    let out = system(command . " " . l:tmpname)
+    let out = system(command . " " . VimToGoPath(l:tmpname))
 
     "if there is no error on the temp file, gofmt again our original file
     if v:shell_error == 0

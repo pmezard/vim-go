@@ -46,6 +46,10 @@ function! IsWin()
     return 0
 endfunction
 
+function! IsCygwin()
+    return has('win32unix') || has('win64unix')
+endfunction
+
 " PathSep returns the appropriate path separator based on OS.
 function! PathSep()
     if IsWin()
@@ -53,6 +57,27 @@ function! PathSep()
     endif
 
     return ":"
+endfunction
+
+function! VimPathSep()
+    if IsCygwin()
+        return ":"
+    endif
+    return PathSep()
+endfunction
+
+function! VimToGoPath(path)
+    if IsCygwin()
+        return system("cygpath -m " . a:path)
+    endif
+   return path
+endfunction
+
+function! GoToVimPath(path)
+    if IsCygwin()
+        return system("cygpath -u " . a:path)
+    endif
+   return path
 endfunction
 
 " DefaultGoPath returns the default GOPATH.
@@ -78,7 +103,7 @@ function! GetBinPath()
     elseif $GOBIN != ""
         let bin_path = $GOBIN
     elseif $GOPATH != ""
-        let bin_path = expand(DefaultGoPath() . "/bin/")
+        let bin_path = GoToVimPath(expand(DefaultGoPath() . "/bin/"))
     else
         " could not find anything
     endif
@@ -112,7 +137,7 @@ function! s:GoInstallBinaries(updateBinaries)
     let old_path = $PATH
 
     " vim's executable path is looking in PATH so add our go_bin path to it
-    let $PATH = $PATH . PathSep() .go_bin_path
+    let $PATH = $PATH . VimPathSep() .go_bin_path
 
     " when shellslash is set on MS-* systems, shellescape puts single quotes
     " around the output string. cmd on Windows does not handle single quotes
